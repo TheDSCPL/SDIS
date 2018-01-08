@@ -1,6 +1,6 @@
-#include "../headers/TCPserver.hpp"
+#include "../../headers/Network/TCPserver.hpp"
 #include <iostream>
-#include "../headers/ErrorCodes.hpp"
+#include "../../headers/ErrorCodes.hpp"
 #include <cstring>
 #include <sstream>
 #include <unistd.h>

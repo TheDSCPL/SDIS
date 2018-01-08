@@ -1,15 +1,19 @@
 #include <iostream>
 #include <unistd.h>
 #include "headers/Thread.hpp"
-#include "headers/TCPserver.hpp"
-#include "headers/ParallelizableProcess.h"
+#include "headers/Network/TCPserver.hpp"
+#include "headers/ParallelProcesses/ParallelizableProcess.h"
+#include "headers/SHA512.h"
+#include "headers/MD5.hpp"
+#include "headers/ParallelProcesses/SHA512ParallelProcess.hpp"
+#include "headers/Network/SDISServer.hpp"
 
 using namespace std;
 
 Mutex m;
 
 void clientHandler(Connection& conn) {
-    //cout << "Client Handler of socket " << conn.socket << endl;
+    //cout << "SDISServer Handler of socket " << conn.socket << endl;
     conn << "You are socket " << conn.getSocket() << "\n";
     //TCPServer::write(conn.socket,string("You are socket ") + conn.socket + "\n");
     //char receive;
@@ -95,20 +99,89 @@ public:
         exitTasks.insert({G,H});
     }
 
-    void onReady() override final {
+    void onReady() final {
         cout << "Process1 finished" << endl;
     }
 };
 
 int main() {
+    SDISServer server;
+    server.join();
     /*TCPServer server("192.168.2.12",12345, clientHandler);
 
     server.join();*/
 
-    Process1 p;
-    p.run();
+//    Process1 p;
+//    cout << p.isRunning() << endl;
+//    p.run();
+//    Thread::usleep(1000);
+//    cout << p.isRunning() << endl;
+//
+//    p.join();
 
-    Thread:usleep(100*1000*1000);
+    //cout << bytes2HexString(SHA512("ola"))<<endl;
+    //std::vector<byte> t = concat({'a','b','c'},{'a','b','c'});
+    //for(char c : t)
+    //    cout << c;
+    //cout << endl;
+
+    string key = "ola",message="message";
+
+    //cout << bytes2HexString( SHA512( concat( outputPadSHA512(key) , SHA512( concat( inputPadSHA512(key) , message ) ) ) ) ) << endl;
+
+    //cout << bytes2HexString(MD5("ola")) << endl;
+
+    /*for(auto i : key) {
+        cout << (int)i << " ";
+    }
+    cout << endl;
+
+    auto t = MD5(key);
+    for(auto i : t) {
+        cout << (int)i << " ";
+    }
+    cout << endl;
+
+    t = inputPadMD5(key);
+    for(auto i : t) {
+        cout << (int)i << " ";
+    }
+    cout << endl;
+
+    t = concat( inputPadMD5(key) , message );
+    for(auto i : t) {
+        cout << (int)i << " ";
+    }
+    cout << endl;*/
+
+    SHA512ParallelProcess sha512ParallelProcess(key,message);
+
+    //cout << bytes2HexString( MD5( concat( outputPadMD5(key) , MD5( concat( inputPadMD5(key) , message ) ) ) ) ) << endl;
+    struct timespec startTime={0},endTime={0};
+    clock_gettime(CLOCK_MONOTONIC,&startTime);
+    cout << bytes2HexString( SHA512( concat( outputPadSHA512(key) , SHA512( concat( inputPadSHA512(key) , message ) ) ) ) ) << endl;
+    clock_gettime(CLOCK_MONOTONIC,&endTime);
+    cout << (endTime.tv_sec-startTime.tv_sec)*1000000000UL + endTime.tv_nsec - startTime.tv_nsec << " nanoseconds" << endl;
+
+    SHA512ParallelProcessSimplified sha512ParallelProcessSimplified(key,message);
+
+    startTime={0};
+    endTime={0};
+    clock_gettime(CLOCK_MONOTONIC,&startTime);
+    sha512ParallelProcessSimplified.run();
+    sha512ParallelProcessSimplified.join();
+    clock_gettime(CLOCK_MONOTONIC,&endTime);
+    cout << (endTime.tv_sec-startTime.tv_sec)*1000000000UL + endTime.tv_nsec - startTime.tv_nsec << " nanoseconds" << endl;
+
+    startTime={0};
+    endTime={0};
+    clock_gettime(CLOCK_MONOTONIC,&startTime);
+    sha512ParallelProcess.run();
+    sha512ParallelProcess.join();
+    clock_gettime(CLOCK_MONOTONIC,&endTime);
+    cout << (endTime.tv_sec-startTime.tv_sec)*1000000000UL + endTime.tv_nsec - startTime.tv_nsec << " nanoseconds" << endl;
+
+    //inputPadSHA512("abcdefg");
 
 //    Thread a([](){for(;;);});
 //    a.start();

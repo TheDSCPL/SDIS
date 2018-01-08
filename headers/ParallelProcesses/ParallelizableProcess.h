@@ -4,7 +4,7 @@
 #include <vector>
 #include <functional>
 
-#include "Thread.hpp"
+#include "../Thread.hpp"
 
 class SimpleTask;
 
@@ -16,6 +16,10 @@ class ParallelizableProcess {
     void setExitTaskReady(SimpleTask*);
     //bool recursiveIsRunning(const SimpleTask *, std::set<const SimpleTask *> &alreadyChecked) const;
     bool recursiveIsRunning(const SimpleTask *) const;
+    ThreadCondition joinCondition;
+    Mutex joinMutex;
+
+
 protected:
     static std::vector<std::set<SimpleTask*>> tasksOnCores;
     std::set<SimpleTask*> entryTasks, exitTasks;
@@ -25,6 +29,7 @@ public:
     static unsigned int getBestCore();
     bool isRunning() const;
     void run();
+    void join();
 };
 
 class SimpleTask {

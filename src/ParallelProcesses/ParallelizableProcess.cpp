@@ -1,12 +1,12 @@
 #include <iostream>
-#include "../headers/ParallelizableProcess.h"
+#include "../../headers/ParallelProcesses/ParallelizableProcess.h"
 
 using namespace std;
 
 SimpleTask::SimpleTask(ParallelizableProcess* parent, const std::function<void()>& task, std::set<SimpleTask *> prevTasks) :
         parent(parent),
         task(task),
-        runner(task,[this](){ParallelizableProcess::tasksOnCores[runningOnCore].erase(this);this->setReadyOnAllNext();}) {
+        runner(task,[this](){ParallelizableProcess::tasksOnCores[runningOnCore].erase(this);cout<<"Task on core "<<runningOnCore<<" ended"<<endl;this->setReadyOnAllNext();}) {
     addPrevTasks(prevTasks);
 }
 
@@ -77,8 +77,10 @@ std::vector<std::set<SimpleTask*>> ParallelizableProcess::tasksOnCores = {{},{},
 void ParallelizableProcess::setExitTaskReady(SimpleTask * t) {
     if(exitTasks.find(t)!=exitTasks.end())
         readyExitTasks.insert(t);
-    if(exitTasks.size()==readyExitTasks.size())
+    if(exitTasks.size()==readyExitTasks.size()) {
         onReady();
+        joinCondition.broadcast();
+    }
 }
 
 //bool ParallelizableProcess::recursiveIsRunning(const SimpleTask *t, set<const SimpleTask *> &alreadyChecked) const {
@@ -126,4 +128,10 @@ void ParallelizableProcess::run() {
         return;
     for(SimpleTask* t : entryTasks)
         t->run();
+}
+
+void ParallelizableProcess::join() {
+    joinMutex.lock();
+    joinCondition.wait(joinMutex);
+    joinMutex.unlock();
 }
