@@ -55,7 +55,7 @@ class Thread {
     Thread(Thread const &) = delete;
 
     void operator=(Thread const &) = delete;
-
+//add getter for the core
 public:
     Thread(std::function<void()>, std::function<void()> = []() {});
 
@@ -63,7 +63,7 @@ public:
 
     void start();
 
-    static void usleep(long millis);
+    static void usleep(long micros);
 
     static long getNCores();
 

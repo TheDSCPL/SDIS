@@ -81,8 +81,8 @@ void Thread::start() {
 //        cerr << "Couldn't detach thread!" << endl;
 }
 
-void Thread::usleep(long millis) {
-    this_thread::sleep_for(chrono::microseconds(millis));
+void Thread::usleep(long micros) {
+    this_thread::sleep_for(chrono::microseconds(micros));
 }
 
 long Thread::getNCores() {

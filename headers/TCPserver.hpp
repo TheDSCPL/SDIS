@@ -9,7 +9,6 @@
 class Connection;
 
 class TCPServer {
-public:
     friend class Connection;
     std::set<Connection *> connections;
 
@@ -19,6 +18,7 @@ public:
     struct sockaddr_in serv_addr, cli_addr;
     const int port,enable_resuse_addr=1;
     int sockfd;
+    const in_addr_t IP;
     std::function<void(Connection &)> clientRoutine;
 
     TCPServer(const TCPServer&) = delete;
@@ -26,15 +26,17 @@ public:
 
     static void write(int socketfd, std::string tosend);
 
-    static void readLine(int socketfd, std::string &line);
+    void readLine(int socketfd, std::string &line);
 
-    static void read(int socketfd, char *c);
+    void read(int socketfd, char *c);
 
-    static void read(int socketfd, std::string &word);
+    void read(int socketfd, std::string &word);
 
-    static std::string getIP(const std::string& netInterface = Constants::networkInterface);
+    static std::string getIP(const std::string& netInterface);
 
 public:
+    TCPServer(std::string IP, int port, std::function<void(Connection &)> clientRoutine);
+
     TCPServer(int port, std::function<void(Connection &)> clientRoutine);
 
     bool isRunning() const;
@@ -49,6 +51,8 @@ public:
 
     int getPort() const;
 
+    std::string getIP() const;
+
     static void close(int socket);
 
     std::function<void(Connection &)> getClientRoutine() const;
@@ -57,10 +61,10 @@ public:
 };
 
 class Connection {
-public:
+    friend void TCPServer::read(int socketfd, char *c);
     void onDisconnect();
 
-    const volatile int socket;
+    const int socket;
     TCPServer * const server;
 
     volatile bool connected=true;
@@ -82,6 +86,8 @@ public:
     bool isConnected() const;
 
     TCPServer& getServer() const;
+
+    int getSocket() const;
 
     std::string readLine();
 
@@ -105,42 +111,42 @@ public:
         return *this << std::to_string(d);
     }
 
-    const Connection &operator<<(const bool &b) const {
-        std::string s(b ? "true" : "false");
-        throw 1;
-        return *this << s;
-    }
+//    const Connection &operator<<(const bool &b) const {
+//        std::string s(b ? "true" : "false");
+//        throw 1;
+//        return *this << s;
+//    }
 
     //Reads a word from the Connection
-    const Connection &operator>>(std::string &s) const {
+    Connection &operator>>(std::string &s) {
         throwIfClosed();
-        TCPServer::read(socket, s);
+        this->getServer().read(socket, s);
         return *this;
     }
 
-    const Connection &operator>>(int &i) const {
+    Connection &operator>>(int &i) {
         std::string temp;
         *this >> temp;
         i = Utils::stoi(temp);
         return *this;
     }
 
-    const Connection &operator>>(double &d) const {
+    Connection &operator>>(double &d) {
         std::string temp;
         *this >> temp;
         d = Utils::stod(temp);
         return *this;
     }
 
-    const Connection &operator>>(bool &b) const {
+    Connection & operator>>(bool &b) {
         std::string temp;
         *this >> temp;
         b = Utils::s2b(temp);
         return *this;
     }
 
-    const Connection &operator>>(char &b) const {
-        TCPServer::read(this->socket,&b);
+    Connection &operator>>(char &b) {
+        this->getServer().read(this->socket,&b);
         return *this;
     }
 };
@@ -161,4 +167,8 @@ public:
     const int error;
 
     const char *what() const throw();
+};
+
+class ConnectionEOF : public std::exception {
+
 };

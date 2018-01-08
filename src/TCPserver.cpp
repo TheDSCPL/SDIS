@@ -48,19 +48,33 @@ void TCPServer::read(int socketfd, char *c) {
             case EAGAIN:
             case EBADF:
             case EISDIR:
-                throw ReadError("Invalid socketf");
+                throw ReadError("Invalid socketf "+socketfd);
             case EFAULT:
                 throw ReadError("Buffer error");
             case EINTR:
                 throw ReadError("Interrupted read");
             case EINVAL:
             case EIO:
-            default:
                 throw ReadError("Error reading!");
+            case 104:   //Connection reset by peer (should be closed!)
+                for(auto it=connections.begin() ; it!=connections.end() ; it++) {
+                    if((*it)->socket==socketfd) {
+                        (*it)->close();
+                        *c = '\0';
+                        return;
+                    }
+                }
+                //if it's a connection that doesn't belong to this server, just throw an exception
+                //this should not happen but it's here for robustness
+                throw ConnectionEOF();
+            default:
+                throw ReadError("Another error!");
         }
-    } else {
-        *c=(t==0?(char)'\0':b[0]);
-    }
+    } else if (t==0) {
+        *c = '\0';
+        throw ConnectionEOF();
+    } else
+        *c=b[0];
 }
 
 void TCPServer::read(int socketfd, std::string &word) {
@@ -107,7 +121,8 @@ string TCPServer::getIP(const std::string& netInterface) {
     return ret;
 }
 
-TCPServer::TCPServer(int port, std::function<void(Connection &)> clientRoutine) :
+TCPServer::TCPServer(std::string IP, int port, std::function<void(Connection &)> clientRoutine) :
+        IP(IP.empty()?INADDR_ANY:inet_addr(IP.c_str())),
         port(port),
         acceptor([this](){
             while (true) {
@@ -141,6 +156,8 @@ TCPServer::TCPServer(int port, std::function<void(Connection &)> clientRoutine) 
     start();
 }
 
+TCPServer::TCPServer(int port, std::function<void(Connection &)> clientRoutine) : TCPServer("",port,clientRoutine) {}
+
 bool TCPServer::isRunning() const {
     return acceptor.isRunning();
 }
@@ -164,7 +181,7 @@ void TCPServer::start() {
     // Criar a estrutura que guarda o endereço do servidor
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_addr.sin_addr.s_addr = this->IP;
     serv_addr.sin_port = htons((uint16_t) port);
     client_addr_length = sizeof(cli_addr);
 
@@ -191,6 +208,12 @@ int TCPServer::getNConnections() const {
 
 int TCPServer::getPort() const {
     return port;
+}
+
+std::string TCPServer::getIP() const {
+    struct in_addr temp;
+    temp.s_addr=IP;
+    return std::string(inet_ntoa(temp));
 }
 
 void TCPServer::close(int socket) {
@@ -234,6 +257,7 @@ Connection::Connection(TCPServer *server, int socket) :
 void Connection::onDisconnect() {
     connected=false;
     server->connections.erase(this);
+    cout << "Connection to socket " << this->socket << " closed!" << endl;
 }
 
 void Connection::close() {
@@ -251,9 +275,13 @@ TCPServer& Connection::getServer() const {
     return *server;
 }
 
+int Connection::getSocket() const {
+    return socket;
+}
+
 std::string Connection::readLine() {
     string ret;
-    TCPServer::readLine(socket, ret);
+    this->getServer().readLine(socket, ret);
     return ret;
 }
 
