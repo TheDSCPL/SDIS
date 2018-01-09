@@ -3,6 +3,41 @@
 #include "../../headers/SHA512.h"
 #include "../../headers/MD5.hpp"
 
+HMACSHA512SeriesProcess::HMACSHA512SeriesProcess(Connection* c, std::string key, std::string message) : ParallelizableProcess(c), key(key), message(message) {
+    A=new SimpleTask(this,[this,key,message](){
+        retA=outputPadSHA512(key);
+    });
+    B=new SimpleTask(this,[this,key,message](){
+        retB=inputPadSHA512(key);
+    },{A});
+    C=new SimpleTask(this,[this,key,message](){
+        retC=concat(retB,message);
+    },{B});
+    D=new SimpleTask(this,[this,key,message](){
+        retD=SHA512(retC);
+    },{C});
+    E=new SimpleTask(this,[this,key,message](){
+        retE=concat(retA,retD);
+    },{D});
+    F=new SimpleTask(this,[this,key,message](){
+        retF=SHA512(retE);
+    },{E});
+
+    entryTasks={A};
+    exitTasks={F};
+}
+
+HMACSHA512SeriesProcess::~HMACSHA512SeriesProcess() {
+    delete A, B, C, D, E, F;
+}
+
+void HMACSHA512SeriesProcess::onReady() {
+    if(conn)
+        (*conn) << bytes2HexString(retF) << "\n";
+    else
+        std::cout << bytes2HexString(retF) << std::endl;
+}
+
 HMACSHA512ParallelProcess::HMACSHA512ParallelProcess(Connection* c, std::string key, std::string message) : ParallelizableProcess(c), key(key), message(message) {
     A=new SimpleTask(this,[this,key,message](){
         retA=outputPadSHA512(key);
@@ -66,6 +101,41 @@ void HMACSHA512ParallelProcessSimplified::onReady() {
 
 
 
+
+HMACMD5SeriesProcess::HMACMD5SeriesProcess(Connection* c, std::string key, std::string message) : ParallelizableProcess(c), key(key), message(message) {
+    A=new SimpleTask(this,[this,key,message](){
+        retA=outputPadMD5(key);
+    });
+    B=new SimpleTask(this,[this,key,message](){
+        retB=inputPadMD5(key);
+    },{A});
+    C=new SimpleTask(this,[this,key,message](){
+        retC=concat(retB,message);
+    },{B});
+    D=new SimpleTask(this,[this,key,message](){
+        retD=MD5(retC);
+    },{C});
+    E=new SimpleTask(this,[this,key,message](){
+        retE=concat(retA,retD);
+    },{D});
+    F=new SimpleTask(this,[this,key,message](){
+        retF=MD5(retE);
+    },{E});
+
+    entryTasks={A};
+    exitTasks={F};
+}
+
+HMACMD5SeriesProcess::~HMACMD5SeriesProcess() {
+    delete A, B, C, D, E, F;
+}
+
+void HMACMD5SeriesProcess::onReady() {
+    if(conn)
+        (*conn) << bytes2HexString(retF) << "\n";
+    else
+        std::cout << bytes2HexString(retF) << std::endl;
+}
 
 
 HMACMD5ParallelProcess::HMACMD5ParallelProcess(Connection* c, std::string key, std::string message) : ParallelizableProcess(c), key(key), message(message) {

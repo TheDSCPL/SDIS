@@ -4,6 +4,32 @@
 
 using namespace std;
 
+void Timer::start() {
+    clock_gettime(CLOCK_MONOTONIC,&startTime);
+    endTime={0};
+}
+
+long int Timer::getTime() {
+    if(startTime.tv_sec==0 && startTime.tv_nsec==0)
+        return 0;
+    if(endTime.tv_sec==0 && endTime.tv_nsec==0) {
+        struct timespec now={0};
+        clock_gettime(CLOCK_MONOTONIC,&now);
+        return (now.tv_sec-startTime.tv_sec)*1000000000UL + now.tv_nsec - startTime.tv_nsec;
+    }
+    return (endTime.tv_sec - startTime.tv_sec)*1000000000UL + endTime.tv_nsec - startTime.tv_nsec;
+}
+
+void Timer::end() {
+    clock_gettime(CLOCK_MONOTONIC,&endTime);
+    if(startTime.tv_sec==0 && startTime.tv_nsec==0)
+        startTime=endTime;
+}
+
+bool Timer::isRunning() {
+    return !(startTime.tv_sec==0 && startTime.tv_nsec==0) && (endTime.tv_sec==0 && endTime.tv_nsec==0);
+}
+
 bool Utils::s2b(string const& s)
 { //returns true if _s is "true" or "t". this function IS NOT case sensitive
     string _s(s);

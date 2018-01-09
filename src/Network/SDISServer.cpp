@@ -19,18 +19,18 @@ void SDISServer::handler(Connection &c) {
             invalidInput=true;
         }
         if(invalidInput) {
-            c << "Inseriu um caracter inválido (insira apenas números inteiros)" << "\n";
+            c << "You've inserted an invalid character (insert integers only)" << "\n";
             continue;
         }
         if(i<0) {
-            c << "Tem a certeza que pretende terminar a ligação? (S/N)";
+            c << "Are you sure you want to close the connection? (Y/n)";
             char response;
             try {
                 do{
                     c >> response;
                 } while(response==' '||response=='\n'||response=='\r'||response=='\t');
             } catch (std::logic_error& e) {continue;}
-            if(response=='S'||response=='s')
+            if(response=='Y'||response=='y')
                 break;
             continue;
         }
@@ -43,18 +43,26 @@ void SDISServer::handler(Connection &c) {
                 std::string key = c.readLine();
                 c << "Insert the message: ";
                 std::string message = c.readLine();
+                Timer t;
+                t.start();
                 c << bytes2HexString( SHA512( concat( outputPadSHA512(key) , SHA512( concat( inputPadSHA512(key) , message ) ) ) ) ) << "\n";
+                t.end();
+                c << "(took " << t.getTime() << "ns)" << "\n\n";
             }
                 break;
             case 2: {
-                c << "---Computing HMAC-SHA512 in parallel---" << "\n";
+                c << "---Computing HMAC-SHA512 in series---" << "\n";
                 c << "Insert the key: ";
                 std::string key = c.readLine();
                 c << "Insert the message: ";
                 std::string message = c.readLine();
-                HMACSHA512ParallelProcess hmacSHA512ParallelProcess(&c,key,message);
-                hmacSHA512ParallelProcess.run();
-                hmacSHA512ParallelProcess.join();
+                HMACSHA512SeriesProcess hmacSHA512SeriesProcess(&c,key,message);
+                Timer t;
+                t.start();
+                hmacSHA512SeriesProcess.run();
+                hmacSHA512SeriesProcess.join();
+                t.end();
+                c << "(took " << t.getTime() << "ns)" << "\n\n";
             }
                 break;
             case 3: {
@@ -64,8 +72,12 @@ void SDISServer::handler(Connection &c) {
                 c << "Insert the message: ";
                 std::string message = c.readLine();
                 HMACSHA512ParallelProcess hmacSHA512ParallelProcess(&c,key,message);
+                Timer t;
+                t.start();
                 hmacSHA512ParallelProcess.run();
                 hmacSHA512ParallelProcess.join();
+                t.end();
+                c << "(took " << t.getTime() << "ns)" << "\n\n";
             }
                 break;
             case 4: {
@@ -75,17 +87,25 @@ void SDISServer::handler(Connection &c) {
                 c << "Insert the message: ";
                 std::string message = c.readLine();
                 HMACSHA512ParallelProcessSimplified hmacSHA512ParallelProcessSimplified(&c,key,message);
+                Timer t;
+                t.start();
                 hmacSHA512ParallelProcessSimplified.run();
                 hmacSHA512ParallelProcessSimplified.join();
+                t.end();
+                c << "(took " << t.getTime() << "ns)" << "\n\n";
             }
                 break;
             case 5: {
-                c << "---Computing HMAC-MD5 in series---" << "\n";
+                c << "---Computing HMAC-MD5 in without FSM---" << "\n";
                 c << "Insert the key: ";
                 std::string key = c.readLine();
                 c << "Insert the message: ";
                 std::string message = c.readLine();
+                Timer t;
+                t.start();
                 c << bytes2HexString( MD5( concat( outputPadMD5(key) , MD5( concat( inputPadMD5(key) , message ) ) ) ) ) << "\n";
+                t.end();
+                c << "(took " << t.getTime() << "ns)" << "\n\n";
             }
                 break;
             case 6: {
@@ -94,7 +114,13 @@ void SDISServer::handler(Connection &c) {
                 std::string key = c.readLine();
                 c << "Insert the message: ";
                 std::string message = c.readLine();
-                c << bytes2HexString( MD5( concat( outputPadMD5(key) , MD5( concat( inputPadMD5(key) , message ) ) ) ) ) << "\n";
+                HMACMD5SeriesProcess hmacMD5SeriesProcess(&c,key,message);
+                Timer t;
+                t.start();
+                hmacMD5SeriesProcess.run();
+                hmacMD5SeriesProcess.join();
+                t.end();
+                c << "(took " << t.getTime() << "ns)" << "\n\n";
             }
                 break;
             case 7: {
@@ -104,8 +130,12 @@ void SDISServer::handler(Connection &c) {
                 c << "Insert the message: ";
                 std::string message = c.readLine();
                 HMACMD5ParallelProcess hmacMD5ParallelProcess(&c,key,message);
+                Timer t;
+                t.start();
                 hmacMD5ParallelProcess.run();
                 hmacMD5ParallelProcess.join();
+                t.end();
+                c << "(took " << t.getTime() << "ns)" << "\n\n";
             }
                 break;
             case 8: {
@@ -115,11 +145,38 @@ void SDISServer::handler(Connection &c) {
                 c << "Insert the message: ";
                 std::string message = c.readLine();
                 HMACMD5ParallelProcessSimplified hmacMD5ParallelProcessSimplified(&c,key,message);
+                Timer t;
+                t.start();
                 hmacMD5ParallelProcessSimplified.run();
                 hmacMD5ParallelProcessSimplified.join();
+                t.end();
+                c << "(took " << t.getTime() << "ns)" << "\n\n";
             }
                 break;
             case 9: {
+                c << "---Computing primes without FSM---" << "\n";
+                int number;
+                do {
+                    try {
+                        c >> number;
+                    } catch (std::logic_error &e) {
+                        invalidInput = true;
+                    }
+                    if (invalidInput || number <= 0) {
+                        c << "You've inserted an invalid character (insert positive integers only)" << "\n";
+                        continue;
+                    }
+                } while (invalidInput);
+                PrimesParallelProcess primesParallelProcess(&c,number);
+                Timer t;
+                t.start();
+                primesParallelProcess.run();
+                primesParallelProcess.join();
+                t.end();
+                c << "(took " << t.getTime() << "ns)" << "\n\n";
+            }
+                break;
+            case 10: {
                 c << "---Computing primes series---" << "\n";
                 int number;
                 do {
@@ -129,16 +186,20 @@ void SDISServer::handler(Connection &c) {
                         invalidInput = true;
                     }
                     if (invalidInput || number <= 0) {
-                        c << "Inseriu um caracter inválido (insira apenas números inteiros positivos)" << "\n";
+                        c << "You've inserted an invalid character (insert positive integers only)" << "\n";
                         continue;
                     }
                 } while (invalidInput);
                 PrimesParallelProcess primesParallelProcess(&c,number);
+                Timer t;
+                t.start();
                 primesParallelProcess.run();
                 primesParallelProcess.join();
+                t.end();
+                c << "(took " << t.getTime() << "ns)" << "\n\n";
             }
                 break;
-            case 10: {
+            case 11: {
                 c << "---Computing primes parallel---" << "\n";
                 int number;
                 do {
@@ -148,17 +209,22 @@ void SDISServer::handler(Connection &c) {
                         invalidInput = true;
                     }
                     if (invalidInput || number <= 0) {
-                        c << "Inseriu um caracter inválido (insira apenas números inteiros positivos)" << "\n";
+                        c << "You've inserted an invalid character (insert positive integers only)" << "\n";
                         continue;
                     }
                 } while (invalidInput);
                 PrimesParallelProcess primesParallelProcess(&c,number);
+                Timer t;
+                t.start();
                 primesParallelProcess.run();
                 primesParallelProcess.join();
+                t.end();
+                c << "(took " << t.getTime() << "ns)" << "\n\n";
             }
                 break;
             default:
-                c << "Seleccionou " << i << "\n";
+                c << "You've selected " << i << " but that option doesn't exist." << "\n";
+                displayHelpMenu(c);
         }
     } while(true);
 }

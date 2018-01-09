@@ -2,6 +2,15 @@
 
 #include <string>
 
+class Timer {
+    struct timespec startTime={0},endTime={0};
+public:
+    void start();
+    long int getTime();
+    void end();
+    bool isRunning();
+};
+
 namespace Utils {
 
     bool s2b(std::string const&);

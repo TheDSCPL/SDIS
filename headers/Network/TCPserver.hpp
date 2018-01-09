@@ -107,6 +107,10 @@ public:
         return *this << std::to_string(i);
     }
 
+    const Connection &operator<<(const long int &i) const {
+        return *this << std::to_string(i);
+    }
+
     const Connection &operator<<(const double &d) const {
         return *this << std::to_string(d);
     }
