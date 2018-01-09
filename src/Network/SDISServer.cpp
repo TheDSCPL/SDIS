@@ -37,6 +37,7 @@ void SDISServer::handler(Connection &c) {
         switch(i) {
             case 0:
                 displayHelpMenu(c);
+                break;
             case 1: {
                 c << "---Computing HMAC-SHA512 without FSM---" << "\n";
                 c << "Insert the key: ";
@@ -167,13 +168,41 @@ void SDISServer::handler(Connection &c) {
                         continue;
                     }
                 } while (invalidInput);
-                PrimesParallelProcess primesParallelProcess(&c,number);
+
                 Timer t;
+                std::vector<bool> flags;
+                flags.push_back(false);
+                for(int i = 1; i<number ; i++)
+                    flags.push_back(true);
+                unsigned long long int cursor=0;
+                unsigned long long int maxCursor=number-1;
                 t.start();
-                primesParallelProcess.run();
-                primesParallelProcess.join();
+                while(true) {
+                    do {
+                        cursor++;
+                    } while(!flags[cursor] && cursor < maxCursor);
+                    if(cursor >= maxCursor)
+                        break;
+                    for (unsigned long long int j = 2; j*(cursor+1)-1 < number ; j++)
+                        flags[j*(cursor+1)-1]=false;
+                }
                 t.end();
-                c << "(took " << t.getTime() << "ns)" << "\n\n";
+                c << "(took " << t.getTime() << "ns)" << "\n";
+                c << "Do you want the primes to be printed? (Y/n)";
+                char response;
+                try {
+                    do{
+                        c >> response;
+                    } while(response==' '||response=='\n'||response=='\r'||response=='\t');
+                } catch (std::logic_error& e) {continue;}
+                if(response=='Y'||response=='y') {
+                    for(int i = 0 ; i<number ; i++) {
+                        if(flags[i])
+                            c << i + 1 << " ";
+                    }
+                    c << "\n";
+                }
+                c << "\n";
             }
                 break;
             case 10: {
@@ -190,11 +219,11 @@ void SDISServer::handler(Connection &c) {
                         continue;
                     }
                 } while (invalidInput);
-                PrimesParallelProcess primesParallelProcess(&c,number);
+                PrimesSeriesProcess primesSeriesProcess(&c,number);
                 Timer t;
                 t.start();
-                primesParallelProcess.run();
-                primesParallelProcess.join();
+                primesSeriesProcess.run();
+                primesSeriesProcess.join();
                 t.end();
                 c << "(took " << t.getTime() << "ns)" << "\n\n";
             }
@@ -231,16 +260,16 @@ void SDISServer::handler(Connection &c) {
 
 void SDISServer::displayHelpMenu(Connection &c) {
     c << "Available options:" << "\n";
-    c << "<0 -> Finish Connection" << "\n";
-    c << " 1 -> Compute HMAC-512 (without FSM)" << "\n";
-    c << " 2 -> Compute HMAC-512 (serie)" << "\n";
-    c << " 3 -> Compute HMAC-512 (parallel)" << "\n";
-    c << " 4 -> Compute HMAC-512 (parallel simplified)" << "\n";
-    c << " 5 -> Compute HMAC-MD5 (without FSM)" << "\n";
-    c << " 6 -> Compute HMAC-MD5 (serie)" << "\n";
-    c << " 7 -> Compute HMAC-MD5 (parallel)" << "\n";
-    c << " 8 -> Compute HMAC-MD5 (parallel simplified)" << "\n";
-    c << " 9 -> Compute primes (without FSM)" << "\n";
-    c << "10 -> Compute primes series" << "\n";
-    c << "11 -> Compute primes parallel" << "\n";
+    c << "< 0 -> Finish Connection" << "\n";
+    c << "  1 -> Compute HMAC-SHA512 (without FSM)" << "\n";
+    c << "  2 -> Compute HMAC-SHA512 (serie)" << "\n";
+    c << "  3 -> Compute HMAC-SHA512 (parallel)" << "\n";
+    c << "  4 -> Compute HMAC-SHA512 (parallel simplified)" << "\n";
+    c << "  5 -> Compute HMAC-MD5 (without FSM)" << "\n";
+    c << "  6 -> Compute HMAC-MD5 (serie)" << "\n";
+    c << "  7 -> Compute HMAC-MD5 (parallel)" << "\n";
+    c << "  8 -> Compute HMAC-MD5 (parallel simplified)" << "\n";
+    c << "  9 -> Compute primes (without FSM)" << "\n";
+    c << " 10 -> Compute primes series" << "\n";
+    c << " 11 -> Compute primes parallel" << "\n";
 }
