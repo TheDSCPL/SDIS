@@ -6,7 +6,7 @@
 #include "headers/ParallelProcesses/ParallelizableProcess.h"
 #include "headers/SHA512.h"
 #include "headers/MD5.hpp"
-#include "headers/ParallelProcesses/SHA512ParallelProcess.hpp"
+#include "headers/ParallelProcesses/HMACParallelProcess.hpp"
 #include "headers/ParallelProcesses/PrimesParallelProcess.hpp"
 #include "headers/Network/SDISServer.hpp"
 
@@ -163,7 +163,7 @@ int main() {
     }
     cout << endl;*/
 
-    SHA512ParallelProcess sha512ParallelProcess(key,message);
+    /*SHA512ParallelProcess sha512ParallelProcess(key,message);
 
     //cout << bytes2HexString( MD5( concat( outputPadMD5(key) , MD5( concat( inputPadMD5(key) , message ) ) ) ) ) << endl;
     struct timespec startTime={0},endTime={0};
@@ -172,7 +172,7 @@ int main() {
     clock_gettime(CLOCK_MONOTONIC,&endTime);
     cout << (endTime.tv_sec-startTime.tv_sec)*1000000000UL + endTime.tv_nsec - startTime.tv_nsec << " nanoseconds" << endl;
 
-    SHA512ParallelProcessSimplified sha512ParallelProcessSimplified(key,message);
+    HMACSHA512ParallelProcessSimplified sha512ParallelProcessSimplified(key,message);
 
     startTime={0};
     endTime={0};
@@ -188,7 +188,7 @@ int main() {
     sha512ParallelProcess.run();
     sha512ParallelProcess.join();
     clock_gettime(CLOCK_MONOTONIC,&endTime);
-    cout << (endTime.tv_sec-startTime.tv_sec)*1000000000UL + endTime.tv_nsec - startTime.tv_nsec << " nanoseconds" << endl;
+    cout << (endTime.tv_sec-startTime.tv_sec)*1000000000UL + endTime.tv_nsec - startTime.tv_nsec << " nanoseconds" << endl;*/
 
     //inputPadSHA512("abcdefg");
 

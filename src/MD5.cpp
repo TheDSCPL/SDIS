@@ -33,7 +33,7 @@ std::vector<byte> outputPadMD5(std::string key) {
     for(int i = 0 ; i<ret.size() ; i++)
     {
         ret[i]^=0x5C;
-        cout << (int)(ret[i]==0?'0':ret[i]) << endl;
+        //cout << (int)(ret[i]==0?'0':ret[i]) << endl;
     }
     return ret;
 }
