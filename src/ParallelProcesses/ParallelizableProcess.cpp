@@ -3,12 +3,22 @@
 
 using namespace std;
 
-SimpleTask::SimpleTask(ParallelizableProcess* parent, const std::function<void()>& task, std::set<SimpleTask *> prevTasks) :
+SimpleTask::SimpleTask(const std::string & name, ParallelizableProcess *parent, function<void()> task, std::set<SimpleTask *> prevTasks) :
+        name(name),
         parent(parent),
         task(task),
-        runner(task,[this](){ParallelizableProcess::tasksOnCores[runningOnCore].erase(this);cout<<"Task on core "<<runningOnCore<<" ended"<<endl;this->setReadyOnAllNext();}) {
+        runner(
+                task,
+                [this](){
+                    ParallelizableProcess::tasksOnCores[runningOnCore].erase(this);
+                    clog<<"Task on core " << this->name << " "<<runningOnCore<<" ended"<<endl;
+                    this->setReadyOnAllNext();
+                }
+        ) {
     addPrevTasks(prevTasks);
 }
+
+SimpleTask::SimpleTask(ParallelizableProcess *parent, std::function<void()> task, std::set<SimpleTask *> prevTasks) : SimpleTask("",parent,task,prevTasks) {}
 
 void SimpleTask::setReadyOnAllNext() {
     if(nextTasks.empty())
@@ -64,7 +74,7 @@ void SimpleTask::run() {
     if(!isReady() || isRunning())
         return;
     runningOnCore = ParallelizableProcess::getBestCore();
-    cout << "Thread started on core " << runningOnCore << endl;
+    clog << "SimpleTask " << name << " started on core " << runningOnCore << endl;
     runner.start();
     runner.setRunningCore(runningOnCore);
     ParallelizableProcess::tasksOnCores[runningOnCore].insert(this);
@@ -103,6 +113,10 @@ bool ParallelizableProcess::recursiveIsRunning(const SimpleTask *t) const {
             return true;
     return false;
 }
+
+ParallelizableProcess::ParallelizableProcess() : conn(nullptr) {}
+
+ParallelizableProcess::ParallelizableProcess(Connection *c) : conn(c) {}
 
 unsigned int ParallelizableProcess::getBestCore() {
     if(tasksOnCores.empty())

@@ -281,7 +281,9 @@ int Connection::getSocket() const {
 
 std::string Connection::readLine() {
     string ret;
-    this->getServer().readLine(socket, ret);
+    do {
+        this->getServer().readLine(socket, ret);
+    } while(ret.empty());
     return ret;
 }
 

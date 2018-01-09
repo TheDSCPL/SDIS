@@ -1,11 +1,13 @@
 #include <iostream>
 #include <unistd.h>
+#include <fstream>
 #include "headers/Thread.hpp"
 #include "headers/Network/TCPserver.hpp"
 #include "headers/ParallelProcesses/ParallelizableProcess.h"
 #include "headers/SHA512.h"
 #include "headers/MD5.hpp"
 #include "headers/ParallelProcesses/SHA512ParallelProcess.hpp"
+#include "headers/ParallelProcesses/PrimesParallelProcess.hpp"
 #include "headers/Network/SDISServer.hpp"
 
 using namespace std;
@@ -105,6 +107,13 @@ public:
 };
 
 int main() {
+    std::ofstream log_file;
+    log_file.open("SDIS_proj.log", ofstream::out | ofstream::app);
+    clog.rdbuf(log_file.rdbuf());
+//    PrimesParallelProcess primes(1000000);
+//    primes.run();
+//    primes.join();
+
     SDISServer server;
     server.join();
     /*TCPServer server("192.168.2.12",12345, clientHandler);
