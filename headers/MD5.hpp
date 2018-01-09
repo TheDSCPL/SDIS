@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <cryptopp/config.h>
+#include "../libcryptopp/config.h"
 #include <vector>
 
 std::vector<byte> inputPadMD5(std::string key);

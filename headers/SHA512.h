@@ -1,7 +1,7 @@
 #pragma once
 
+#include "../libcryptopp/config.h"
 #include <string>
-#include <cryptopp/config.h>
 #include <vector>
 
 std::vector<byte> inputPadSHA512(std::string key);

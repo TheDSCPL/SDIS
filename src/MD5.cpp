@@ -1,7 +1,6 @@
 #include "../headers/MD5.hpp"
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
-#include <cryptopp/md5.h>
-#include <cryptopp/hex.h>
+#include "../libcryptopp/md5.h"
 #include <iostream>
 
 using namespace std;

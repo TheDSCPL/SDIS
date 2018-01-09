@@ -42,5 +42,12 @@ void SDISServer::handler(Connection &c) {
 }
 
 void SDISServer::displayHelpMenu(Connection &c) {
-    
+    c << "Available options:" << "\n";
+    c << "<0 -> Finish Connection" << "\n";
+    c << " 1 -> Computing HMAC" << "\n";
+    c << " 2 -> Computing HMAC" << "\n";
+    c << " 3 -> Computing HMAC" << "\n";
+
+
+
 }

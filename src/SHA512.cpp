@@ -1,6 +1,6 @@
 #include "../headers/SHA512.h"
-#include <cryptopp/sha.h>
-#include <cryptopp/hex.h>
+#include "../libcryptopp/sha.h"
+#include "../libcryptopp/hex.h"
 #include <iostream>
 
 using namespace std;
