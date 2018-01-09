@@ -166,10 +166,15 @@ void SDISServer::handler(Connection &c) {
 void SDISServer::displayHelpMenu(Connection &c) {
     c << "Available options:" << "\n";
     c << "<0 -> Finish Connection" << "\n";
-    c << " 1 -> Compute HMAC (serie)" << "\n";
-    c << " 2 -> Compute HMAC (parallel)" << "\n";
-    c << " 3 -> Compute HMAC (simple)" << "\n";\
-
-
-
+    c << " 1 -> Compute HMAC-512 (without FSM)" << "\n";
+    c << " 2 -> Compute HMAC-512 (serie)" << "\n";
+    c << " 3 -> Compute HMAC-512 (parallel)" << "\n";
+    c << " 4 -> Compute HMAC-512 (parallel simplified)" << "\n";
+    c << " 5 -> Compute HMAC-MD5 (without FSM)" << "\n";
+    c << " 6 -> Compute HMAC-MD5 (serie)" << "\n";
+    c << " 7 -> Compute HMAC-MD5 (parallel)" << "\n";
+    c << " 8 -> Compute HMAC-MD5 (parallel simplified)" << "\n";
+    c << " 9 -> Compute primes (without FSM)" << "\n";
+    c << "10 -> Compute primes series" << "\n";
+    c << "11 -> Compute primes parallel" << "\n";
 }
